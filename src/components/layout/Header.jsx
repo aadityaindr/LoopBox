@@ -11,6 +11,7 @@ import {
 import React, { Suspense, lazy, useState } from "react";
 import { orange } from "../../constants/color";
 import {
+  VideoChat as VideoChatIcon,
   Add as AddIcon,
   Menu as MenuIcon,
   Search as SearchIcon,
@@ -40,7 +41,7 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { isSearch, isNotification, isNewGroup } = useSelector(
+  const { isSearch, isNotification, isNewGroup, isVCRoom } = useSelector(
     (state) => state.misc
   );
   const { notificationCount } = useSelector((state) => state.chat);
@@ -51,6 +52,10 @@ const Header = () => {
 
   const openNewGroup = () => {
     dispatch(setIsNewGroup(true));
+  };
+
+  const openVCRoom = () => {
+    window.open('/vcroom', '_blank', 'noopener,noreferrer');
   };
 
   const openNotification = () => {
@@ -124,6 +129,13 @@ const Header = () => {
                 onClick={navigateToGroup}
               />
 
+                <IconBtn
+                  title={"Secret Room"}
+                  icon={<VideoChatIcon />}
+                  onClick={openVCRoom}
+                />
+              
+
               <IconBtn
                 title={"Notifications"}
                 icon={<NotificationsIcon />}
@@ -158,6 +170,7 @@ const Header = () => {
           <NewGroupDialog />
         </Suspense>
       )}
+
     </>
   );
 };
