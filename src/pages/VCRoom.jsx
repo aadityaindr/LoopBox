@@ -1,87 +1,72 @@
 import React, { useEffect, useRef } from 'react';
-// import './style.css';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 
-function randomID(len) {
+// Utility to parse URL parameters
+function getUrlParams(url = window.location.href) {
+  const queryString = url.split('?')[1] || '';
+  return new URLSearchParams(queryString);
+}
+
+// Generate a random numeric ID of given length
+function randomNumericID(len = 5) {
   let result = '';
-  if (result) return result;
-  const chars = '9f4e66b109d743f91538695ad7fc8588';
-  const maxPos = chars.length;
-  len = len || 5;
+  const chars = '0123456789';
   for (let i = 0; i < len; i++) {
-    result += chars.charAt(Math.floor(Math.random() * maxPos));
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
 }
 
-// Function to get the token
-function generateToken(tokenServerUrl, appID, userID) {
-  return fetch(tokenServerUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      app_id: appID,
-      user_id: userID,
-    }),
-  }).then(async (res) => {
-    const result = await res.text();
-    return result;
-  });
-}
-
-// Function to get URL parameters
-export function getUrlParams(url = window.location.href) {
-  const urlStr = url.split('?')[1];
-  return new URLSearchParams(urlStr);
-}
-
 export default function VCRoom() {
-//   const roomID = getUrlParams().get('roomID') || randomID(5);
-  const roomID = "globalroom123";
-  const userID = randomID(5);
-  const userName = randomID(5);
   const callContainerRef = useRef(null);
 
   useEffect(() => {
-    const setupMeeting = async () => {
-      const token = await generateToken(
-        'https://preview-uikit-server.zegotech.cn/api/token',
-        2013980891,
-        userID
-      );
+    // Extract or create room ID, user ID, and user name
+    const params = getUrlParams();
+    const roomID = params.get('roomID') || randomNumericID(5);
+    const userID = randomNumericID(5);
+    const userName = `user_${userID}`;
 
-      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForProduction(
-        2013980891,
-        token,
-        roomID,
-        userID,
-        userName
-      );
+    // Test App credentials (use generateKitTokenForTest in development)
+    const appID = 905418461;
+    const serverSecret = '9f4e66b109d743f91538695ad7fc8588';
 
-      const zp = ZegoUIKitPrebuilt.create(kitToken);
-      zp.joinRoom({
-        container: callContainerRef.current,
-        showPreJoinView: false,
-        sharedLinks: [
-          {
-            name: 'Personal link',
-            url: `${window.location.origin}${window.location.pathname}?roomID=${roomID}`,
-          },
-        ],
-        scenario: {
-          mode: ZegoUIKitPrebuilt.GroupCall,
+    // Generate a test token
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+      appID,
+      serverSecret,
+      roomID,
+      userID,
+      userName
+    );
+
+    // Create Zego prebuilt UI instance and join
+    const zp = ZegoUIKitPrebuilt.create(kitToken);
+    zp.joinRoom({
+      container: callContainerRef.current,
+      sharedLinks: [
+        {
+          name: 'Personal link',
+          url: `${window.location.origin}${window.location.pathname}?roomID=${roomID}`,
         },
-      });
-    };
-
-    setupMeeting();
-  }, [roomID, userID, userName]);
+      ],
+      scenario: { mode: ZegoUIKitPrebuilt.VideoConference },
+      turnOnMicrophoneWhenJoining: true,
+      turnOnCameraWhenJoining: true,
+      showMyCameraToggleButton: true,
+      showMyMicrophoneToggleButton: true,
+      showAudioVideoSettingsButton: true,
+      showScreenSharingButton: true,
+      showTextChat: true,
+      showUserList: true,
+      maxUsers: 50,
+      layout: 'Auto',
+      showLayoutButton: true,
+    });
+  }, []);
 
   return (
     <div
-      className="myCallContainer"
       ref={callContainerRef}
       style={{ width: '100vw', height: '100vh' }}
     ></div>
