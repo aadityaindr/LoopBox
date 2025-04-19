@@ -1,12 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 
-// Utility to parse URL parameters
-function getUrlParams(url = window.location.href) {
-  const queryString = url.split('?')[1] || '';
-  return new URLSearchParams(queryString);
-}
-
 // Generate a random numeric ID of given length
 function randomNumericID(len = 5) {
   let result = '';
@@ -21,13 +15,14 @@ export default function VCRoom() {
   const callContainerRef = useRef(null);
 
   useEffect(() => {
-    // Extract or create room ID, user ID, and user name
-    const params = getUrlParams();
-    const roomID = params.get('roomID') || randomNumericID(5);
+    // 🔒 Fixed room ID for all users
+    const roomID = 'global-room';
+
+    // Generate random user ID and name
     const userID = randomNumericID(5);
     const userName = `user_${userID}`;
 
-    // Test App credentials (use generateKitTokenForTest in development)
+    // Zego credentials (test)
     const appID = 905418461;
     const serverSecret = '9f4e66b109d743f91538695ad7fc8588';
 
@@ -40,14 +35,14 @@ export default function VCRoom() {
       userName
     );
 
-    // Create Zego prebuilt UI instance and join
+    // Join the video conference
     const zp = ZegoUIKitPrebuilt.create(kitToken);
     zp.joinRoom({
       container: callContainerRef.current,
       sharedLinks: [
         {
-          name: 'Personal link',
-          url: `${window.location.origin}${window.location.pathname}?roomID=${roomID}`,
+          name: 'Join this meeting',
+          url: `${window.location.origin}${window.location.pathname}`,
         },
       ],
       scenario: { mode: ZegoUIKitPrebuilt.VideoConference },
